@@ -1,0 +1,32 @@
+﻿@page
+@model IndexModel
+@{ ViewBag.Name = "Process"; }
+<form method="post">
+	<div class="mb-3">
+		<label class="form-label" for="duration-input">Duration (timespan)</label>
+		<input class="form-control" id="duration-input" name="Duration" placeholder="00:00:00" type="text" value="@Model.Duration?.ToString()" />
+	</div>
+	<div class="text-end">
+		<button class="btn btn-primary" type="submit">Process</button>
+	</div>
+</form>
+<p>
+	<a href="/Process">Reset</a>
+</p>
+@if(Model.Exception != null)
+{
+	<div class="alert alert-danger">
+		@Model.Exception
+	</div>
+}
+else if(Model.Operation != null)
+{
+	<div class="alert alert-success">
+		<h2 class="h5">
+			<a href="@Model.Operation.Path">@Model.Operation.Path</a>
+		</h2>
+		<code>
+			<pre>@Model.Operation.ToJson()</pre>
+		</code>
+	</div>
+}

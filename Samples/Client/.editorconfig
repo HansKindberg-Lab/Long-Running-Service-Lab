@@ -1,0 +1,7 @@
+# Suppress
+[*.cs]
+[/Models/*Operation.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+[/Models/*DurationResult.cs]
+dotnet_diagnostic.CA1716.severity = none

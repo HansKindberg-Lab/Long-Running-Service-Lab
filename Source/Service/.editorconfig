@@ -1,0 +1,25 @@
+# Suppress
+[*.cs]
+dotnet_diagnostic.CA1056.severity = none
+dotnet_diagnostic.IDE0045.severity = none
+
+[/Controllers/*.cs]
+dotnet_diagnostic.CA2007.severity = none
+
+[/Models/Data/Entities/Operation.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+[/Models/Data/Migrations/**.cs]
+dotnet_analyzer_diagnostic.severity = none
+
+[/Models/Security/AuthenticationMiddleware.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+[/Models/*Operation.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+[/Models/*DurationResult.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+[/Program.cs]
+dotnet_diagnostic.CA1305.severity = none

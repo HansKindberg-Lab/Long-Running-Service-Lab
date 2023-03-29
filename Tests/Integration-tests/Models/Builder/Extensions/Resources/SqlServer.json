@@ -1,0 +1,8 @@
+{
+	"ConnectionStrings": {
+		"Operation": "Server=(LocalDb)\\MSSQLLocalDB;AttachDbFilename=Data\\Database.mdf;Integrated Security=True"
+	},
+	"OperationRepositoryConfiguration": {
+		"Type": "Service.Models.DependencyInjection.Configuration.SqlServerOperationRepositoryOptions, Service"
+	}
+}

@@ -1,0 +1,38 @@
+﻿@page
+@model IndexModel
+@{ ViewBag.Name = "Operation"; }
+<form>
+	<div class="mb-3">
+		<label class="form-label" for="id-input">Id (guid)</label>
+		<input class="form-control" id="id-input" name="Id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" type="text" value="@Model.Id" />
+	</div>
+	<div class="text-end">
+		<button class="btn btn-primary" type="submit">Get</button>
+	</div>
+</form>
+<p>
+	<a href="/Operation">Reset</a>
+</p>
+@if(Model.Exception != null)
+{
+	<div class="alert alert-danger">
+		@Model.Exception
+	</div>
+}
+else if(!string.IsNullOrEmpty(Model.Id))
+{
+	if(Model.Operation != null)
+	{
+		<div class="alert alert-success">
+			<code>
+				<pre>@Model.Operation.ToJson()</pre>
+			</code>
+		</div>
+	}
+	else
+	{
+		<div class="alert alert-warning">
+			There is no operation with id "@Model.Id".
+		</div>
+	}
+}

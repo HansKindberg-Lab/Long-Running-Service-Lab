@@ -1,0 +1,27 @@
+﻿@page
+@model IndexModel
+@{ ViewBag.Name = "Home"; }
+<p>This is the service-client.</p>
+@if(Model.Exception != null)
+{
+	<div class="alert alert-danger">
+		@Model.Exception
+	</div>
+}
+else if(Model.Operations.Any())
+{
+	<h2>Results</h2>
+	<ul class="list-group">
+		@foreach(var operation in Model.Operations)
+		{
+			<li class="list-group-item">
+				<h3 class="h5">
+					<a href="@operation.Path">@operation.Id</a>
+				</h3>
+				<code>
+					<pre>@operation.ToJson()</pre>
+				</code>
+			</li>
+		}
+	</ul>
+}
