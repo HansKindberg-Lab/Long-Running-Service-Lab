@@ -18,10 +18,38 @@ namespace Client.Models.Configuration
 				dictionary.Remove(key);
 			}
 
+			key = nameof(ServiceConnectionOptions.OperationPathFormat);
+			if(dictionary.TryGetValue(key, out value))
+			{
+				ldapConnectionOptions.OperationPathFormat = value;
+				dictionary.Remove(key);
+			}
+
+			key = nameof(ServiceConnectionOptions.OperationsPath);
+			if(dictionary.TryGetValue(key, out value))
+			{
+				ldapConnectionOptions.OperationsPath = value;
+				dictionary.Remove(key);
+			}
+
 			key = nameof(ServiceConnectionOptions.Origin);
 			if(dictionary.TryGetValue(key, out value))
 			{
 				ldapConnectionOptions.Origin = new Uri(value, UriKind.Absolute);
+				dictionary.Remove(key);
+			}
+
+			key = nameof(ServiceConnectionOptions.ProcessPath);
+			if(dictionary.TryGetValue(key, out value))
+			{
+				ldapConnectionOptions.ProcessPath = value;
+				dictionary.Remove(key);
+			}
+
+			key = nameof(ServiceConnectionOptions.ProcessWithResultPath);
+			if(dictionary.TryGetValue(key, out value))
+			{
+				ldapConnectionOptions.ProcessWithResultPath = value;
 				dictionary.Remove(key);
 			}
 
