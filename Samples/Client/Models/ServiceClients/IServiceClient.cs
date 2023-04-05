@@ -6,8 +6,8 @@ namespace Client.Models.ServiceClients
 
 		Task<IOperation> Operation(Guid? id);
 		Task<IEnumerable<IOperation>> Operations();
-		Task<IOperation> Process(TimeSpan? duration);
-		Task<IDurationResult> ProcessWithResult(TimeSpan? duration);
+		Task<IOperation> Process(TimeSpan? duration, bool throwException);
+		Task<IDurationResult> ProcessWithResult(TimeSpan? duration, bool throwException);
 
 		#endregion
 	}

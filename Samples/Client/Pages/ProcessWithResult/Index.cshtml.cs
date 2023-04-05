@@ -22,18 +22,20 @@ namespace Client.Pages.ProcessWithResult
 		public virtual Exception Exception { get; set; }
 		public virtual IDurationResult Result { get; set; }
 		protected internal virtual IServiceClient ServiceClient { get; }
+		public virtual bool ThrowException { get; set; }
 
 		#endregion
 
 		#region Methods
 
-		public virtual async Task<IActionResult> OnPost(TimeSpan? duration)
+		public virtual async Task<IActionResult> OnPost(TimeSpan? duration, bool throwException)
 		{
 			this.Duration = duration;
+			this.ThrowException = throwException;
 
 			try
 			{
-				this.Result = await this.ServiceClient.ProcessWithResult(duration);
+				this.Result = await this.ServiceClient.ProcessWithResult(duration, throwException);
 			}
 			catch(Exception exception)
 			{

@@ -6,6 +6,10 @@
 		<label class="form-label" for="duration-input">Duration (timespan)</label>
 		<input class="form-control" id="duration-input" name="Duration" placeholder="00:00:00" type="text" value="@Model.Duration?.ToString()" />
 	</div>
+	<div class="form-check mb-3">
+		<input class="form-check-input" id="throw-exception-input" name="ThrowException" type="checkbox" value="true" @Html.Raw(Model.ThrowException ? "checked=\"checked\"" : null) />
+		<label class="form-check-label" for="throw-exception-input">Throw exception</label>
+	</div>
 	<div class="text-end">
 		<button class="btn btn-primary" type="submit">Process</button>
 	</div>

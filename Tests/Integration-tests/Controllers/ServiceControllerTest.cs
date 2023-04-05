@@ -17,6 +17,7 @@ using Service.Models;
 using Service.Models.Configuration;
 using Service.Models.Data;
 using Service.Models.DependencyInjection.Configuration;
+using Service.Models.Web.Mvc;
 
 namespace IntegrationTests.Controllers
 {
@@ -62,9 +63,10 @@ namespace IntegrationTests.Controllers
 		{
 			var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 			var operationRepository = serviceProvider.GetRequiredService<IOperationRepository>();
+			var problemDetailsFactory = serviceProvider.GetRequiredService<IProblemDetailsFactory>();
 			var serviceOptionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<ServiceOptions>>();
 
-			var serviceController = new ServiceController(guidFactory, loggerFactory, operationRepository, serviceOptionsMonitor, systemClock)
+			var serviceController = new ServiceController(guidFactory, loggerFactory, operationRepository, serviceOptionsMonitor, problemDetailsFactory, systemClock)
 			{
 				ControllerContext = new ControllerContext
 				{
@@ -155,6 +157,32 @@ namespace IntegrationTests.Controllers
 		}
 
 		[TestMethod]
+		public async Task Process_ThrowException_Test()
+		{
+			using(var serviceProvider = await this.CreateServiceProviderAsync())
+			{
+				var serviceController = await this.CreateServiceControllerAsync(serviceProvider);
+
+				var operation = await serviceController.Process(null, true);
+				Assert.IsNotNull(operation);
+				Assert.IsNull(operation.End);
+				Assert.AreEqual(_id, operation.Id);
+				Assert.IsNull(operation.Result);
+				Assert.AreEqual(_utcNow, operation.Start);
+				Assert.AreEqual($"/Operation/{_id}", (string)serviceController.Response.Headers.Location);
+				Assert.AreEqual(202, serviceController.Response.StatusCode);
+
+				await Task.Delay(500);
+
+				using(var operationContext = serviceProvider.GetRequiredService<OperationContext>())
+				{
+					Assert.AreEqual(1, await operationContext.Operations.CountAsync());
+					await operationContext.Database.EnsureDeletedAsync();
+				}
+			}
+		}
+
+		[TestMethod]
 		public async Task ProcessWithResult_Test()
 		{
 			using(var serviceProvider = await this.CreateServiceProviderAsync())
@@ -172,6 +200,33 @@ namespace IntegrationTests.Controllers
 				using(var operationContext = serviceProvider.GetRequiredService<OperationContext>())
 				{
 					await operationContext.Database.EnsureDeletedAsync();
+				}
+			}
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public async Task ProcessWithResult_ThrowException_ShouldThrowAnInvalidOperationException()
+		{
+			using(var serviceProvider = await this.CreateServiceProviderAsync())
+			{
+				var serviceController = await this.CreateServiceControllerAsync(serviceProvider);
+
+				try
+				{
+					await serviceController.ProcessWithResult(null, true);
+				}
+				catch(InvalidOperationException invalidOperationException)
+				{
+					if(invalidOperationException.Message.Equals("Requested exception.", StringComparison.Ordinal))
+						throw;
+				}
+				finally
+				{
+					using(var operationContext = serviceProvider.GetRequiredService<OperationContext>())
+					{
+						await operationContext.Database.EnsureDeletedAsync();
+					}
 				}
 			}
 		}

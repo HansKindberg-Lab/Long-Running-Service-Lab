@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Service.Models;
 using Service.Models.Configuration;
 using Service.Models.Logging.Extensions;
+using Service.Models.Web.Mvc;
 
 namespace Service.Controllers
 {
@@ -17,7 +18,7 @@ namespace Service.Controllers
 	{
 		#region Constructors
 
-		public ServiceController(IGuidFactory guidFactory, ILoggerFactory loggerFactory, IOperationRepository operationRepository, IOptionsMonitor<ServiceOptions> optionsMonitor, ISystemClock systemClock) : base(loggerFactory)
+		public ServiceController(IGuidFactory guidFactory, ILoggerFactory loggerFactory, IOperationRepository operationRepository, IOptionsMonitor<ServiceOptions> optionsMonitor, IProblemDetailsFactory problemDetailsFactory, ISystemClock systemClock) : base(loggerFactory, problemDetailsFactory)
 		{
 			this.GuidFactory = guidFactory ?? throw new ArgumentNullException(nameof(guidFactory));
 			this.OperationRepository = operationRepository ?? throw new ArgumentNullException(nameof(operationRepository));
@@ -37,6 +38,11 @@ namespace Service.Controllers
 		#endregion
 
 		#region Methods
+
+		protected internal virtual async Task<Exception> CreateRequestedExceptionAsync()
+		{
+			return await Task.FromResult(new InvalidOperationException("Requested exception."));
+		}
 
 		[HttpGet]
 		[Route("Operation/{id}")]
@@ -84,7 +90,7 @@ namespace Service.Controllers
 
 		[HttpPost]
 		[Route("Process")]
-		public virtual async Task<IOperation> Process(TimeSpan? duration)
+		public virtual async Task<IOperation> Process(TimeSpan? duration, bool throwException = false)
 		{
 			var start = this.SystemClock.UtcNow;
 
@@ -106,15 +112,24 @@ namespace Service.Controllers
 
 			_ = Task.Run(async () =>
 			{
-				var result = await this.ProcessInternal(duration, start);
-
 				var completedOperation = new Operation
 				{
-					End = result.End,
 					Id = id,
-					Result = result,
 					Start = start
 				};
+
+				try
+				{
+					var durationResult = await this.ProcessInternal(duration, start, throwException);
+
+					completedOperation.End = durationResult.End;
+					completedOperation.Result = durationResult;
+				}
+				catch(Exception exception)
+				{
+					completedOperation.End = this.SystemClock.UtcNow;
+					completedOperation.Result = this.ExtendedProblemDetailsFactory.Create(exception, this.HttpContext);
+				}
 
 				await this.OperationRepository.SaveAsync(completedOperation);
 			});
@@ -124,10 +139,13 @@ namespace Service.Controllers
 			return await Task.FromResult(operation);
 		}
 
-		protected internal virtual async Task<IDurationResult> ProcessInternal(TimeSpan? duration, DateTimeOffset start)
+		protected internal virtual async Task<IDurationResult> ProcessInternal(TimeSpan? duration, DateTimeOffset start, bool throwException)
 		{
 			if(duration != null)
 				await Task.Delay(duration.Value);
+
+			if(throwException)
+				throw await this.CreateRequestedExceptionAsync();
 
 			var end = this.SystemClock.UtcNow;
 
@@ -144,13 +162,13 @@ namespace Service.Controllers
 
 		[HttpPost]
 		[Route("ProcessWithResult")]
-		public virtual async Task<IDurationResult> ProcessWithResult(TimeSpan? duration)
+		public virtual async Task<IDurationResult> ProcessWithResult(TimeSpan? duration, bool throwException = false)
 		{
 			var start = this.SystemClock.UtcNow;
 
 			this.Logger.LogInformationIfEnabled("ProcessWithResult request starting...");
 
-			var result = await this.ProcessInternal(duration, start);
+			var result = await this.ProcessInternal(duration, start, throwException);
 
 			this.Logger.LogInformationIfEnabled("ProcessWithResult request finished.");
 

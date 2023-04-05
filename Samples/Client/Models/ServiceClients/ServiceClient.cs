@@ -70,6 +70,19 @@ namespace Client.Models.ServiceClients
 
 		#region Methods
 
+		protected internal virtual async Task<string> CreateRequestUriAsync(TimeSpan? duration, string path, bool throwException)
+		{
+			var queryString = new QueryString();
+
+			if(duration != null)
+				queryString = queryString.Add("Duration", $"{duration}");
+
+			if(throwException)
+				queryString = queryString.Add("ThrowException", bool.TrueString);
+
+			return await Task.FromResult($"{path}{queryString}");
+		}
+
 		protected internal virtual async Task<string> GetOperationPathAsync(IOperation operation)
 		{
 			if(operation == null)
@@ -120,9 +133,11 @@ namespace Client.Models.ServiceClients
 			return await Task.FromResult(operations);
 		}
 
-		public virtual async Task<IOperation> Process(TimeSpan? duration)
+		public virtual async Task<IOperation> Process(TimeSpan? duration, bool throwException)
 		{
-			var response = await this.HttpClient.PostAsync($"{this.ServiceConnectionOptions.ProcessPath}{(duration != null ? $"?Duration={duration}" : null)}", null);
+			var requestUri = await this.CreateRequestUriAsync(duration, this.ServiceConnectionOptions.ProcessPath, throwException);
+
+			var response = await this.HttpClient.PostAsync(requestUri, null);
 
 			var responseContent = await response.Content.ReadAsStringAsync();
 
@@ -140,9 +155,11 @@ namespace Client.Models.ServiceClients
 			return await Task.FromResult(operation);
 		}
 
-		public virtual async Task<IDurationResult> ProcessWithResult(TimeSpan? duration)
+		public virtual async Task<IDurationResult> ProcessWithResult(TimeSpan? duration, bool throwException)
 		{
-			var response = await this.HttpClient.PostAsync($"{this.ServiceConnectionOptions.ProcessWithResultPath}{(duration != null ? $"?Duration={duration}" : null)}", null);
+			var requestUri = await this.CreateRequestUriAsync(duration, this.ServiceConnectionOptions.ProcessWithResultPath, throwException);
+
+			var response = await this.HttpClient.PostAsync(requestUri, null);
 
 			var responseContent = await response.Content.ReadAsStringAsync();
 
@@ -166,7 +183,16 @@ namespace Client.Models.ServiceClients
 
 			await Task.CompletedTask;
 
-			operation.Result = JsonSerializer.Deserialize<DurationResult>(result, this.JsonSerializerOptions);
+			var durationResult = JsonSerializer.Deserialize<DurationResult>(result, this.JsonSerializerOptions);
+
+			if(durationResult.Start == default)
+			{
+				operation.Result = JsonSerializer.Deserialize<ProblemDetails>(result, this.JsonSerializerOptions);
+
+				return;
+			}
+
+			operation.Result = durationResult;
 		}
 
 		protected internal virtual void ThrowHttpRequestException(HttpResponseMessage httpResponseMessage, string responseContent)

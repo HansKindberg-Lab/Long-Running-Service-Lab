@@ -13,6 +13,7 @@ using Service.Models.DependencyInjection.Configuration;
 using Service.Models.Json.Extensions;
 using Service.Models.Security;
 using Service.Models.Security.Configuration;
+using Service.Models.Web.Mvc;
 
 namespace Service.Models.DependencyInjection.Extensions
 {
@@ -56,6 +57,7 @@ namespace Service.Models.DependencyInjection.Extensions
 			services.AddOperationRepository(configuration, hostEnvironment);
 
 			services.AddSingleton<IGuidFactory, GuidFactory>();
+			services.AddSingleton<IProblemDetailsFactory, ProblemDetailsFactory>();
 			services.AddSingleton<ISystemClock, SystemClock>();
 
 			services.AddControllers().AddJsonOptions(options =>

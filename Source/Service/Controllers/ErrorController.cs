@@ -1,12 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Service.Models;
-using Service.Models.Configuration;
 using Service.Models.Logging.Extensions;
+using Service.Models.Web.Mvc;
 
 namespace Service.Controllers
 {
@@ -14,29 +11,11 @@ namespace Service.Controllers
 	{
 		#region Constructors
 
-		public ErrorController(ILoggerFactory loggerFactory, IOptions<ExceptionHandlingOptions> options) : base(loggerFactory)
-		{
-			this.Options = options ?? throw new ArgumentNullException(nameof(options));
-		}
-
-		#endregion
-
-		#region Properties
-
-		protected internal virtual IOptions<ExceptionHandlingOptions> Options { get; }
+		public ErrorController(ILoggerFactory loggerFactory, IProblemDetailsFactory problemDetailsFactory) : base(loggerFactory, problemDetailsFactory) { }
 
 		#endregion
 
 		#region Methods
-
-		protected internal virtual ProblemDetails CreateProblemDetails(Exception exception)
-		{
-			var details = this.Options.Value.Detailed ? exception?.ToString() : null;
-
-			var title = exception is ServiceException ? exception.Message : exception?.GetType().Name;
-
-			return this.ProblemDetailsFactory.CreateProblemDetails(this.HttpContext, 500, title, "Error", details);
-		}
 
 		[ApiExplorerSettings(IgnoreApi = true)]
 		[Route("Error")]
@@ -46,7 +25,7 @@ namespace Service.Controllers
 
 			this.Logger.LogErrorIfEnabled(exception, "Error");
 
-			var problemDetails = this.CreateProblemDetails(exception);
+			var problemDetails = this.ExtendedProblemDetailsFactory.Create(exception, this.HttpContext);
 
 			return await Task.FromResult(new ObjectResult(problemDetails)
 			{
