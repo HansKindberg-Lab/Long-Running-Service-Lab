@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Service.Models.Extensions;
 using Service.Models.Json.Extensions;
 using Service.Models.Logging.Extensions;
 
@@ -138,7 +139,7 @@ namespace Service.Models.Data
 				End = operation.End,
 				Id = operation.Id,
 				Result = operation.Result == null ? null : JsonSerializer.Serialize(operation.Result, this.JsonSerializerOptions),
-				ResultType = operation.Result?.GetType().FullName,
+				ResultType = operation.Result?.GetType().QualifiedName(),
 				Start = operation.Start
 			};
 
@@ -168,7 +169,7 @@ namespace Service.Models.Data
 				catch(Exception exception)
 				{
 					model.Result = null;
-					this.Logger.LogErrorIfEnabled(exception, "Could not.");
+					this.Logger.LogErrorIfEnabled(exception, $"Could not json-deserialize the value \"{operation.Result}\" to an instance of type \"{operation.ResultType}\".");
 				}
 			}
 
