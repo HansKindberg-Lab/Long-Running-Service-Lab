@@ -1,9 +1,0 @@
-{
-	"ConnectionStrings": {
-		// It seems that Sqlite uses AppDomain.CurrentDomain.BaseDirectory to resolve relative paths. Thats why the data-source path below.
-		"Operation": "Data Source=../../../Data/Database.db"
-	},
-	"OperationRepositoryConfiguration": {
-		"Type": "Service.Models.DependencyInjection.Configuration.SqliteOperationRepositoryOptions, Service"
-	}
-}

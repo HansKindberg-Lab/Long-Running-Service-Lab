@@ -69,17 +69,13 @@ namespace IntegrationTests.Models.Builder.Extensions
 		[TestMethod]
 		public async Task UseOperationRepository_IfSqliteOperationRepositoryConfigured_ShouldCreateDatabase()
 		{
-			var configuration = Global.CreateConfiguration(@"Models\Builder\Extensions\Resources\Sqlite.json");
-
-			await this.Use_ShouldCreateDatabase(configuration);
+			await this.Use_ShouldCreateDatabase(Global.Configuration);
 		}
 
 		[TestMethod]
 		public async Task UseOperationRepository_IfSqlServerOperationRepositoryConfigured_ShouldCreateDatabase()
 		{
-			var configuration = Global.CreateConfiguration(@"Models\Builder\Extensions\Resources\SqlServer.json");
-
-			await this.Use_ShouldCreateDatabase(configuration);
+			await this.Use_ShouldCreateDatabase(Global.CreateConfiguration("appsettings.json", "appsettings.SqlServer.json"));
 		}
 
 		#endregion
